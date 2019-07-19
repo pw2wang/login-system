@@ -33,7 +33,23 @@ app.post('/to_login',(req,res)=>{
 })
 
 app.get('/login',(req,res)=>{
-    res.send('login')
+    res.send('<form action="/sub_login" method="POST"><h1>用户名</h1><input type="text" name="username"><h1>密码</h1><input type="text" name="password"><button type="submit">登录</button></form>')
+})
+
+app.post('/sub_login', (req, res, next) => {
+    console.log(req.body)
+    var dbo = client.db("login_info")
+    const {username,password}=req.body
+    dbo.collection('users').findOne({username:username},(err,result)=>{
+        if (err) return err;
+        console.log(result.password)
+        if (result.password == password){
+            res.redirect('/login_successful')
+        }else{
+            res.redirect('/login')
+        }
+    })
+    
 })
 
 app.use('/register', (req, res, next) => {
@@ -41,8 +57,8 @@ app.use('/register', (req, res, next) => {
 })
   
 app.post('/sub_register', (req, res, next) => {
-    console.log(req.body);
-    var dbo = client.db("test")
+    console.log(req.body)
+    var dbo = client.db("login_info")
     const {username,password}=req.body
     let errors = []
 
@@ -53,7 +69,7 @@ app.post('/sub_register', (req, res, next) => {
     if (errors.length>0){
         res.redirect('/register')
     }else{
-        dbo.collection('users').findOne({name:username})
+        dbo.collection('users').findOne({username:username})
             .then(user =>{
                 if(user){
                     errors.push({msg:'exist'})
@@ -78,9 +94,16 @@ app.post('/sub_register', (req, res, next) => {
 })
 
 app.get('/successful',(req,res)=>{
-    res.send('注册成功')
+    res.send('<h1>注册成功</h1><form action="/back_home" method="POST"><input type="submit" value="返回主页"/></form>')
 })
 
+app.get('/login_successful',(req,res)=>{
+    res.send('<h1>登录成功</h1><form action="/back_home" method="POST"><input type="submit" value="返回主页"/></form>')
+})
+
+app.post('/back_home',(req,res)=>{
+    res.redirect('/')
+})
 app.listen(5000, ()=>  {
     console.log('Server at 5000')
 })
