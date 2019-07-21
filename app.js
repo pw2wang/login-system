@@ -68,6 +68,8 @@ app.post('/sub_register', (req, res, next) => {
 
     if (errors.length>0){
         res.redirect('/register')
+        res.json({success: true})
+
     }else{
         dbo.collection('users').findOne({username:username})
             .then(user =>{
