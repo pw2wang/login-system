@@ -1,6 +1,18 @@
 var express = require('express')
 const mongoose  = require('mongoose')
 var app = express()
+var path = require('path');
+var multer = require('multer')
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'stor')
+    },
+    filename: function (req, file, cb) {
+      cb(null, 'target.jpg')
+    }
+})
+
+var upload = multer({ storage: storage })
 
 var User = require('./models/User')
 // routes
@@ -97,13 +109,35 @@ app.get('/successful',(req,res)=>{
     res.send('<h1>注册成功</h1><form action="/back_home" method="POST"><input type="submit" value="返回主页"/></form>')
 })
 
+app.post('/uploadfile', (req,res,next)=> {
+    console.log("123")
+})
 app.get('/login_successful',(req,res)=>{
-    res.send('<h1>登录成功</h1><form action="/back_home" method="POST"><input type="submit" value="返回主页"/></form>')
+    res.send('<h1>登录成功</h1><form action="/back_home" method="POST"><input type="submit" value="返回主页"/> </form><form action="/uploadphoto" method = "POST"><input type="submit" value="predict a photo"> </form>')
+    //res.send('<form action="/uploadfile" enctype="multipart/form-data" method="POST"> <input type="file" name="myFile" /><input type="submit" value="Upload a file"/></form>')
+})
+
+app.post('/upload', upload.single("img"), (req, res) => {
+    console.log(req.file) // to see what is returned to you
+    const file = req.file
+    if (!file) {
+        const error = new Error('Please upload a file')
+        error.httpStatusCode = 400
+        return next(error)
+    }
+    res.sendFile(path.join(__dirname, "./stor/image.png"));
+    res.send(file)
+});
+
+app.post('/uploadphoto',(req,res)=>{
+    res.send('<html lang="en"><body><form action="/upload" enctype="multipart/form-data" method="post">File <input type="file" name="img" accept="image/*"><input type="submit" value="Upload"></form></body></html>')
 })
 
 app.post('/back_home',(req,res)=>{
     res.redirect('/')
 })
+
+
 app.listen(5000, ()=>  {
     console.log('Server at 5000')
 })
